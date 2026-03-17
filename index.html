@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0a0a0a">
+<title>Smolov Jr.</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=JetBrains+Mono:wght@400;700&family=DM+Sans:wght@400;500;600;700&display=swap');
+
+:root {
+  --bg: #0a0a0a;
+  --surface: #141414;
+  --surface2: #1c1c1c;
+  --surface3: #252525;
+  --border: #2a2a2a;
+  --text: #e8e8e8;
+  --text-dim: #888;
+  --text-muted: #555;
+  --red: #e53935;
+  --red-dim: #b71c1c;
+  --red-glow: rgba(229, 57, 53, 0.15);
+  --green: #43a047;
+  --green-dim: rgba(67, 160, 71, 0.15);
+  --blue: #42a5f5;
+  --blue-dim: rgba(66, 165, 245, 0.1);
+  --gold: #ffd54f;
+  --gold-dim: rgba(255, 213, 79, 0.1);
+  --radius: 14px;
+  --radius-sm: 8px;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  height: 100dvh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  padding-top: var(--safe-top);
+}
+.scroll-container {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ── HEADER ── */
+.header {
+  flex-shrink: 0;
+  background: rgba(10,10,10,0.95);
+  border-bottom: 1px solid var(--border);
+  padding: 14px 20px;
+}
+.header-inner { display: flex; align-items: center; justify-content: space-between; max-width: 500px; margin: 0 auto; }
+.logo { font-family: 'Bebas Neue', sans-serif; font-size: 26px; letter-spacing: 2px; color: var(--red); }
+.logo span { color: var(--text); font-size: 15px; letter-spacing: 0; margin-left: 6px; opacity: 0.5; }
+.header-right { display: flex; gap: 8px; align-items: center; }
+.oneRM-badge {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px; font-weight: 700;
+  background: var(--red-glow);
+  color: var(--red);
+  padding: 5px 10px;
+  border-radius: 20px;
+  border: 1px solid rgba(229,57,53,0.3);
+}
+.settings-btn {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: var(--surface2); border: 1px solid var(--border);
+  color: var(--text-dim); font-size: 18px;
+  display: flex; align-items: center; justify-content: center; cursor: pointer;
+}
+
+/* ── NAV ── */
+.nav {
+  flex-shrink: 0;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  padding-bottom: var(--safe-bottom);
+}
+.nav-inner {
+  display: flex; max-width: 500px; margin: 0 auto;
+}
+.nav-item {
+  flex: 1; display: flex; flex-direction: column; align-items: center;
+  padding: 10px 4px 8px; cursor: pointer; border: none; background: none;
+  color: var(--text-muted); font-size: 10px; font-family: 'DM Sans', sans-serif;
+  font-weight: 600; letter-spacing: 0.5px; transition: color 0.2s;
+}
+.nav-item.active { color: var(--red); }
+.nav-icon { font-size: 22px; margin-bottom: 3px; }
+
+/* ── PAGES ── */
+.page { display: none; max-width: 500px; margin: 0 auto; padding: 16px; }
+.page.active { display: block; }
+
+/* ── WEEK OVERVIEW ── */
+.week-selector {
+  display: flex; gap: 8px; margin-bottom: 20px; overflow-x: auto;
+  scrollbar-width: none; padding: 2px;
+}
+.week-selector::-webkit-scrollbar { display: none; }
+.week-btn {
+  flex-shrink: 0; padding: 10px 18px; border-radius: 10px;
+  border: 1.5px solid var(--border); background: var(--surface);
+  color: var(--text-dim); font-family: 'DM Sans', sans-serif;
+  font-weight: 600; font-size: 13px; cursor: pointer; transition: all 0.2s;
+  white-space: nowrap;
+}
+.week-btn.active {
+  background: var(--red); border-color: var(--red);
+  color: #fff; box-shadow: 0 4px 20px rgba(229,57,53,0.3);
+}
+.week-btn.deload.active { background: var(--green); border-color: var(--green); box-shadow: 0 4px 20px rgba(67,160,71,0.3); }
+.week-btn.max-test.active { background: #e6a700; border-color: #e6a700; color: #0a0a0a; box-shadow: 0 4px 20px rgba(255,213,79,0.3); }
+
+/* ── DAY CARDS ── */
+.day-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 14px;
+  overflow: hidden;
+  transition: all 0.2s;
+}
+.day-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 16px; cursor: pointer;
+  background: var(--surface2);
+  border-bottom: 1px solid transparent;
+}
+.day-card.expanded .day-header { border-bottom-color: var(--border); }
+.day-label { font-weight: 700; font-size: 15px; }
+.day-meta {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px; color: var(--text-dim);
+}
+.day-meta strong { color: var(--red); font-size: 14px; }
+.day-chevron { color: var(--text-muted); font-size: 18px; transition: transform 0.3s; }
+.day-card.expanded .day-chevron { transform: rotate(180deg); }
+.day-body { display: none; padding: 12px; }
+.day-card.expanded .day-body { display: block; }
+
+/* ── SET ROWS ── */
+.set-row {
+  display: grid;
+  grid-template-columns: 36px 1fr 70px 60px;
+  gap: 8px; align-items: center;
+  padding: 10px 8px;
+  border-radius: var(--radius-sm);
+  margin-bottom: 4px;
+  transition: background 0.15s;
+}
+.set-row.completed { background: var(--green-dim); }
+.set-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px; color: var(--text-muted);
+  text-align: center;
+}
+.set-info { display: flex; flex-direction: column; gap: 2px; }
+.set-weight {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700; font-size: 18px;
+}
+.set-detail { font-size: 12px; color: var(--text-dim); }
+.rpe-input {
+  width: 100%; padding: 8px 4px; border-radius: var(--radius-sm);
+  background: var(--surface3); border: 1px solid var(--border);
+  color: var(--text); font-family: 'JetBrains Mono', monospace;
+  font-size: 14px; text-align: center; outline: none;
+}
+.rpe-input::placeholder { color: var(--text-muted); font-size: 11px; }
+.rpe-input:focus { border-color: var(--red); box-shadow: 0 0 0 2px var(--red-glow); }
+.check-btn {
+  width: 44px; height: 44px; border-radius: 50%;
+  border: 2px solid var(--border); background: transparent;
+  color: var(--text-muted); font-size: 20px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: all 0.2s; margin: 0 auto;
+}
+.check-btn.checked {
+  background: var(--green); border-color: var(--green);
+  color: #fff;
+}
+
+/* ── PROGRESS BAR ── */
+.day-progress {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 12px; margin-top: 4px;
+}
+.progress-track {
+  flex: 1; height: 4px; background: var(--surface3);
+  border-radius: 2px; overflow: hidden;
+}
+.progress-fill {
+  height: 100%; background: var(--green);
+  border-radius: 2px; transition: width 0.4s ease;
+}
+.progress-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; color: var(--text-dim); white-space: nowrap;
+}
+
+/* ── VOLUME SUMMARY ── */
+.volume-bar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 14px; margin-top: 8px;
+  background: var(--surface2); border-radius: var(--radius-sm);
+  font-size: 12px; color: var(--text-dim);
+}
+.volume-bar span { font-family: 'JetBrains Mono', monospace; font-weight: 700; color: var(--text); }
+
+/* ── SETTINGS MODAL ── */
+.modal-overlay {
+  display: none; position: fixed; inset: 0; z-index: 200;
+  background: rgba(0,0,0,0.7);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+.modal-overlay.open { display: flex; align-items: flex-end; justify-content: center; }
+.modal {
+  background: var(--surface); border-radius: 20px 20px 0 0;
+  width: 100%; max-width: 500px;
+  padding: 24px 20px calc(24px + var(--safe-bottom));
+  animation: slideUp 0.3s ease;
+}
+@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+.modal h2 { font-family: 'Bebas Neue', sans-serif; font-size: 24px; letter-spacing: 1px; margin-bottom: 20px; }
+.input-group { margin-bottom: 16px; }
+.input-label { font-size: 12px; font-weight: 600; color: var(--text-dim); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 1px; }
+.input-field {
+  width: 100%; padding: 14px 16px; border-radius: 12px;
+  background: var(--surface3); border: 1.5px solid var(--border);
+  color: var(--text); font-family: 'JetBrains Mono', monospace;
+  font-size: 20px; font-weight: 700; text-align: center; outline: none;
+}
+.input-field:focus { border-color: var(--red); }
+.input-suffix { font-size: 13px; color: var(--text-dim); text-align: center; margin-top: 4px; }
+.modal-actions { display: flex; gap: 10px; margin-top: 24px; }
+.btn {
+  flex: 1; padding: 14px; border-radius: 12px; border: none;
+  font-family: 'DM Sans', sans-serif; font-weight: 700;
+  font-size: 15px; cursor: pointer; transition: all 0.15s;
+}
+.btn-primary { background: var(--red); color: #fff; }
+.btn-primary:active { transform: scale(0.97); }
+.btn-ghost { background: var(--surface3); color: var(--text-dim); }
+.btn-danger { background: rgba(229,57,53,0.15); color: var(--red); }
+
+/* ── STATS PAGE ── */
+.stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+.stat-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 16px;
+}
+.stat-label { font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+.stat-value { font-family: 'Bebas Neue', sans-serif; font-size: 32px; color: var(--red); line-height: 1; }
+.stat-value.green { color: var(--green); }
+.stat-unit { font-size: 14px; color: var(--text-dim); }
+
+/* ── MAX TEST PAGE ── */
+.warmup-row {
+  display: grid; grid-template-columns: 36px 1fr 50px 60px;
+  gap: 8px; align-items: center; padding: 10px 8px;
+  border-bottom: 1px solid var(--border);
+}
+.warmup-row:last-child { border-bottom: none; }
+.attempt-card {
+  background: var(--surface); border: 2px solid var(--border);
+  border-radius: var(--radius); padding: 18px; margin-bottom: 12px;
+  text-align: center;
+}
+.attempt-card.highlight { border-color: var(--gold); background: var(--gold-dim); }
+.attempt-label { font-size: 12px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 6px; }
+.attempt-weight { font-family: 'Bebas Neue', sans-serif; font-size: 48px; color: var(--text); line-height: 1; }
+.attempt-note { font-size: 12px; color: var(--text-dim); margin-top: 6px; font-style: italic; }
+.attempt-result {
+  display: flex; gap: 8px; margin-top: 12px; justify-content: center;
+}
+.result-btn {
+  padding: 8px 20px; border-radius: 8px; border: 1.5px solid var(--border);
+  background: var(--surface3); color: var(--text-dim);
+  font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: 13px;
+  cursor: pointer; transition: all 0.15s;
+}
+.result-btn.hit { border-color: var(--green); background: var(--green-dim); color: var(--green); }
+.result-btn.miss { border-color: var(--red); background: var(--red-glow); color: var(--red); }
+
+.section-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 18px; letter-spacing: 1px;
+  color: var(--text-dim); margin: 20px 0 12px;
+}
+.note-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 12px 14px;
+  font-size: 13px; color: var(--text-dim); line-height: 1.5;
+  margin-bottom: 8px;
+}
+.note-card strong { color: var(--text); }
+
+/* ── DELOAD ── */
+.deload-session {
+  background: var(--surface); border: 1px solid rgba(67,160,71,0.3);
+  border-radius: var(--radius); padding: 16px; margin-bottom: 14px;
+}
+.deload-session h3 {
+  font-family: 'Bebas Neue', sans-serif; font-size: 16px;
+  color: var(--green); letter-spacing: 1px; margin-bottom: 12px;
+}
+
+/* ── TIMER ── */
+.timer-bar {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 150;
+  background: var(--red); height: 3px;
+  transform-origin: left; transform: scaleX(0);
+  transition: transform 0.1s linear;
+}
+.timer-float {
+  display: none; position: fixed; z-index: 150;
+  bottom: 90px; left: 50%; transform: translateX(-50%);
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 30px; padding: 8px 20px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 18px; font-weight: 700;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+  animation: fadeIn 0.2s ease;
+}
+.timer-float.active { display: flex; align-items: center; gap: 10px; }
+.timer-float .timer-cancel {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: var(--surface3); border: none;
+  color: var(--text-dim); font-size: 14px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+}
+@keyframes fadeIn { from { opacity: 0; transform: translateX(-50%) translateY(10px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+</style>
+</head>
+<body>
+
+<div class="timer-bar" id="timerBar"></div>
+<div class="timer-float" id="timerFloat">
+  <span id="timerDisplay">3:00</span>
+  <button class="timer-cancel" onclick="cancelTimer()">✕</button>
+</div>
+
+<header class="header">
+  <div class="header-inner">
+    <div class="logo">SMOLOV JR<span>BENCH</span></div>
+    <div class="header-right">
+      <div class="oneRM-badge" id="headerRM">280 lb</div>
+      <button class="settings-btn" onclick="openSettings()">⚙</button>
+    </div>
+  </div>
+</header>
+
+<!-- ── PROGRAM PAGE ── -->
+<div class="scroll-container">
+<div class="page active" id="page-program">
+  <div class="week-selector" id="weekSelector"></div>
+  <div id="weekContent"></div>
+</div>
+
+<!-- ── STATS PAGE ── -->
+<div class="page" id="page-stats">
+  <div class="section-title">OVERALL PROGRESS</div>
+  <div class="stat-grid">
+    <div class="stat-card">
+      <div class="stat-label">Current 1RM</div>
+      <div class="stat-value" id="statRM">280</div>
+      <div class="stat-unit">lbs</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Goal</div>
+      <div class="stat-value green" id="statGoal">315</div>
+      <div class="stat-unit">lbs</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Sets Done</div>
+      <div class="stat-value" id="statSets">0</div>
+      <div class="stat-unit">of 93</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Total Volume</div>
+      <div class="stat-value" id="statVolume">0</div>
+      <div class="stat-unit">lbs</div>
+    </div>
+  </div>
+  <div class="section-title">WEEKLY BREAKDOWN</div>
+  <div id="weeklyStats"></div>
+</div>
+</div>
+
+<!-- ── NAV ── -->
+<nav class="nav">
+  <div class="nav-inner">
+    <button class="nav-item active" onclick="showPage('program')">
+      <span class="nav-icon">🏋</span>PROGRAM
+    </button>
+    <button class="nav-item" onclick="showPage('stats')">
+      <span class="nav-icon">📊</span>STATS
+    </button>
+  </div>
+</nav>
+
+<!-- ── SETTINGS MODAL ── -->
+<div class="modal-overlay" id="settingsModal">
+  <div class="modal">
+    <h2>SETTINGS</h2>
+    <div class="input-group">
+      <div class="input-label">Current 1RM</div>
+      <input type="number" class="input-field" id="inputRM" value="280" inputmode="numeric">
+      <div class="input-suffix">lbs</div>
+    </div>
+    <div class="input-group">
+      <div class="input-label">Goal 1RM</div>
+      <input type="number" class="input-field" id="inputGoal" value="315" inputmode="numeric">
+      <div class="input-suffix">lbs</div>
+    </div>
+    <div class="input-group">
+      <div class="input-label">Weekly Increment</div>
+      <input type="number" class="input-field" id="inputIncrement" value="10" inputmode="numeric">
+      <div class="input-suffix">lbs per week (10-20 recommended)</div>
+    </div>
+    <div class="input-group">
+      <div class="input-label">Rest Timer (seconds)</div>
+      <input type="number" class="input-field" id="inputTimer" value="180" inputmode="numeric">
+      <div class="input-suffix">auto-starts when you complete a set</div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeSettings()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveSettings()">Save</button>
+    </div>
+    <div style="margin-top:16px">
+      <button class="btn btn-danger" style="width:100%" onclick="resetAll()">Reset All Progress</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── STATE ──
+const DEFAULT_STATE = {
+  rm: 280, goal: 315, increment: 10, timerSeconds: 180,
+  sets: {}, rpe: {}, weekNotes: {}
+};
+
+let state = loadState();
+
+function loadState() {
+  try {
+    const s = JSON.parse(localStorage.getItem('smolov_jr_state'));
+    return s ? { ...DEFAULT_STATE, ...s } : { ...DEFAULT_STATE };
+  } catch { return { ...DEFAULT_STATE }; }
+}
+function saveState() { localStorage.setItem('smolov_jr_state', JSON.stringify(state)); }
+
+// ── PROGRAM STRUCTURE ──
+const PROGRAM = [
+  { week: 1, label: 'Week 1', days: [
+    { day: 'Monday', sets: 6, reps: 6, pct: 0.70 },
+    { day: 'Wednesday', sets: 7, reps: 5, pct: 0.75 },
+    { day: 'Friday', sets: 8, reps: 4, pct: 0.80 },
+    { day: 'Saturday', sets: 10, reps: 3, pct: 0.85 },
+  ]},
+  { week: 2, label: 'Week 2', days: [
+    { day: 'Monday', sets: 6, reps: 6, pct: 0.70 },
+    { day: 'Wednesday', sets: 7, reps: 5, pct: 0.75 },
+    { day: 'Friday', sets: 8, reps: 4, pct: 0.80 },
+    { day: 'Saturday', sets: 10, reps: 3, pct: 0.85 },
+  ]},
+  { week: 3, label: 'Week 3', days: [
+    { day: 'Monday', sets: 6, reps: 6, pct: 0.70 },
+    { day: 'Wednesday', sets: 7, reps: 5, pct: 0.75 },
+    { day: 'Friday', sets: 8, reps: 4, pct: 0.80 },
+    { day: 'Saturday', sets: 10, reps: 3, pct: 0.85 },
+  ]},
+];
+
+function roundTo5(n) { return Math.round(n / 5) * 5; }
+function getWeight(pct, weekNum) { return roundTo5(state.rm * pct + state.increment * (weekNum - 1)); }
+function getRPE(pct) { return pct <= 0.70 ? '6-7' : pct <= 0.75 ? '~7' : pct <= 0.80 ? '7-8' : '8-9'; }
+function setKey(week, dayIdx, setIdx) { return `${week}-${dayIdx}-${setIdx}`; }
+
+// ── TIMER ──
+let timerInterval = null;
+let timerRemaining = 0;
+
+function startTimer() {
+  cancelTimer();
+  timerRemaining = state.timerSeconds;
+  const bar = document.getElementById('timerBar');
+  const float = document.getElementById('timerFloat');
+  float.classList.add('active');
+  updateTimerDisplay();
+  timerInterval = setInterval(() => {
+    timerRemaining--;
+    if (timerRemaining <= 0) {
+      cancelTimer();
+      if ('vibrate' in navigator) navigator.vibrate([200, 100, 200]);
+      return;
+    }
+    const progress = 1 - (timerRemaining / state.timerSeconds);
+    bar.style.transform = `scaleX(${progress})`;
+    updateTimerDisplay();
+  }, 1000);
+}
+
+function updateTimerDisplay() {
+  const m = Math.floor(timerRemaining / 60);
+  const s = timerRemaining % 60;
+  document.getElementById('timerDisplay').textContent = `${m}:${String(s).padStart(2, '0')}`;
+}
+
+function cancelTimer() {
+  clearInterval(timerInterval);
+  timerInterval = null;
+  document.getElementById('timerBar').style.transform = 'scaleX(0)';
+  document.getElementById('timerFloat').classList.remove('active');
+}
+
+// ── RENDER ──
+let currentWeek = 1;
+
+function renderWeekSelector() {
+  const sel = document.getElementById('weekSelector');
+  const weeks = [
+    { id: 1, label: 'Week 1', cls: '' },
+    { id: 2, label: 'Week 2', cls: '' },
+    { id: 3, label: 'Week 3', cls: '' },
+    { id: 4, label: 'Deload', cls: 'deload' },
+    { id: 5, label: 'Max Day', cls: 'max-test' },
+  ];
+  sel.innerHTML = weeks.map(w =>
+    `<button class="week-btn ${w.cls} ${currentWeek === w.id ? 'active' : ''}" onclick="selectWeek(${w.id})">${w.label}</button>`
+  ).join('');
+}
+
+function selectWeek(w) {
+  currentWeek = w;
+  renderWeekSelector();
+  renderWeekContent();
+}
+
+function toggleDay(el) {
+  el.closest('.day-card').classList.toggle('expanded');
+}
+
+function toggleSet(week, dayIdx, setIdx) {
+  const key = setKey(week, dayIdx, setIdx);
+  state.sets[key] = !state.sets[key];
+  if (state.sets[key]) startTimer();
+  saveState();
+  renderWeekContent();
+  updateStats();
+}
+
+function updateRPE(week, dayIdx, setIdx, value) {
+  const key = setKey(week, dayIdx, setIdx);
+  state.rpe[key] = value;
+  saveState();
+}
+
+function renderWeekContent() {
+  const container = document.getElementById('weekContent');
+  if (currentWeek <= 3) {
+    renderTrainingWeek(container, currentWeek);
+  } else if (currentWeek === 4) {
+    renderDeload(container);
+  } else {
+    renderMaxDay(container);
+  }
+}
+
+function renderTrainingWeek(container, weekNum) {
+  const week = PROGRAM[weekNum - 1];
+  let html = '';
+  week.days.forEach((day, dayIdx) => {
+    const weight = getWeight(day.pct, weekNum);
+    const totalReps = day.sets * day.reps;
+    const completedSets = Array.from({ length: day.sets }, (_, i) => state.sets[setKey(weekNum, dayIdx, i)] ? 1 : 0).reduce((a, b) => a + b, 0);
+    const progress = Math.round((completedSets / day.sets) * 100);
+    const allDone = completedSets === day.sets;
+
+    html += `<div class="day-card ${dayIdx === 0 ? 'expanded' : ''}">
+      <div class="day-header" onclick="toggleDay(this)">
+        <div>
+          <div class="day-label">${day.day}</div>
+          <div class="day-meta">${day.sets}×${day.reps} @ <strong>${weight} lb</strong></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          ${allDone ? '<span style="color:var(--green);font-size:18px">✓</span>' : ''}
+          <span class="day-chevron">▾</span>
+        </div>
+      </div>
+      <div class="day-body">`;
+
+    for (let s = 0; s < day.sets; s++) {
+      const key = setKey(weekNum, dayIdx, s);
+      const done = state.sets[key];
+      const rpeVal = state.rpe[key] || '';
+      html += `<div class="set-row ${done ? 'completed' : ''}">
+        <div class="set-num">S${s + 1}</div>
+        <div class="set-info">
+          <div class="set-weight">${weight} lb</div>
+          <div class="set-detail">${day.reps} reps · RPE ${getRPE(day.pct)}</div>
+        </div>
+        <input class="rpe-input" type="text" inputmode="decimal" placeholder="RPE" value="${rpeVal}" onchange="updateRPE(${weekNum},${dayIdx},${s},this.value)">
+        <button class="check-btn ${done ? 'checked' : ''}" onclick="toggleSet(${weekNum},${dayIdx},${s})">${done ? '✓' : ''}</button>
+      </div>`;
+    }
+
+    html += `<div class="day-progress">
+        <div class="progress-track"><div class="progress-fill" style="width:${progress}%"></div></div>
+        <div class="progress-label">${completedSets}/${day.sets}</div>
+      </div>
+      <div class="volume-bar">
+        <span>Day volume</span>
+        <span>${(totalReps * weight).toLocaleString()} lb</span>
+      </div>
+      </div></div>`;
+  });
+  container.innerHTML = html;
+}
+
+function renderDeload(container) {
+  const s1 = [
+    { reps: 1, pct: 0.75, rpe: '5-6' },
+    { reps: 1, pct: 0.78, rpe: '~6' },
+    { reps: 1, pct: 0.80, rpe: '6-7' },
+  ];
+  const s2 = [
+    { reps: 3, pct: 0.70, rpe: '~5' },
+    { reps: 3, pct: 0.72, rpe: '5-6' },
+    { reps: 2, pct: 0.75, rpe: '~6' },
+  ];
+  let html = `
+    <div class="note-card" style="border-color:rgba(67,160,71,0.3);margin-bottom:16px">
+      <strong>Deload week.</strong> Only 2 sessions. Everything should feel easy. The adaptation happens while you rest — trust the process.
+    </div>
+    <div class="deload-session">
+      <h3>SESSION 1 — EARLY WEEK</h3>`;
+  s1.forEach((s, i) => {
+    const w = roundTo5(state.rm * s.pct);
+    const key = setKey(4, 0, i);
+    const done = state.sets[key];
+    html += `<div class="set-row ${done ? 'completed' : ''}">
+      <div class="set-num">${i + 1}</div>
+      <div class="set-info"><div class="set-weight">${w} lb</div><div class="set-detail">${s.reps} rep${s.reps > 1 ? 's' : ''} · RPE ${s.rpe}</div></div>
+      <input class="rpe-input" type="text" inputmode="decimal" placeholder="RPE" value="${state.rpe[key] || ''}" onchange="updateRPE(4,0,${i},this.value)">
+      <button class="check-btn ${done ? 'checked' : ''}" onclick="toggleSet(4,0,${i})">${done ? '✓' : ''}</button>
+    </div>`;
+  });
+  html += `</div><div class="deload-session"><h3>SESSION 2 — LATER IN WEEK</h3>`;
+  s2.forEach((s, i) => {
+    const w = roundTo5(state.rm * s.pct);
+    const key = setKey(4, 1, i);
+    const done = state.sets[key];
+    html += `<div class="set-row ${done ? 'completed' : ''}">
+      <div class="set-num">${i + 1}</div>
+      <div class="set-info"><div class="set-weight">${w} lb</div><div class="set-detail">${s.reps} reps · RPE ${s.rpe}</div></div>
+      <input class="rpe-input" type="text" inputmode="decimal" placeholder="RPE" value="${state.rpe[key] || ''}" onchange="updateRPE(4,1,${i},this.value)">
+      <button class="check-btn ${done ? 'checked' : ''}" onclick="toggleSet(4,1,${i})">${done ? '✓' : ''}</button>
+    </div>`;
+  });
+  html += `</div>
+    <div class="note-card" style="margin-top:16px"><strong>Guidelines:</strong> Nothing should grind. Prioritize 8+ hours sleep. Minimal accessories — light face pulls, easy lat work. You will want to do more. Don't.</div>`;
+  container.innerHTML = html;
+}
+
+function renderMaxDay(container) {
+  const warmups = [
+    { wt: 'Bar', reps: 10, note: 'Loose and easy' },
+    { wt: '135', reps: 5, note: 'Building rhythm' },
+    { wt: '185', reps: 3, note: 'Should feel light' },
+    { wt: '225', reps: 1, note: 'Speed check' },
+    { wt: roundTo5(state.rm * 0.89), reps: 1, note: '~89% — gauge readiness' },
+    { wt: roundTo5(state.rm * 0.95), reps: 1, note: '~95% — last warm-up' },
+  ];
+  const att1 = roundTo5(state.rm + 15);
+  const att2 = roundTo5(state.rm + 25);
+  const att3 = state.goal;
+
+  let html = `
+    <div class="note-card" style="border-color:rgba(255,213,79,0.3);margin-bottom:16px">
+      <strong>Max attempt day.</strong> If warm-ups feel heavy or sluggish, wait 2-3 more days. Don't force the timing.
+    </div>
+    <div class="section-title">WARM-UP LADDER</div>
+    <div class="day-card expanded" style="margin-bottom:20px">
+      <div class="day-body" style="display:block">`;
+  warmups.forEach((w, i) => {
+    html += `<div class="warmup-row">
+      <div class="set-num">${i + 1}</div>
+      <div class="set-info"><div class="set-weight">${w.wt} lb</div><div class="set-detail">${w.reps} rep${w.reps > 1 ? 's' : ''}</div></div>
+      <div style="font-size:11px;color:var(--text-muted)">${w.note}</div>
+      <button class="check-btn ${state.sets[setKey(5, 0, i)] ? 'checked' : ''}" onclick="toggleSet(5,0,${i})">${state.sets[setKey(5, 0, i)] ? '✓' : ''}</button>
+    </div>`;
+  });
+  html += `</div></div>
+    <div class="section-title">MAX ATTEMPTS</div>
+    <div class="attempt-card">
+      <div class="attempt-label">1st Attempt — Conservative</div>
+      <div class="attempt-weight">${att1}</div>
+      <div class="attempt-note">Should be a confident make. ~RPE 8-9.</div>
+      <div class="attempt-result">
+        <button class="result-btn ${state.sets[setKey(5,1,0)] === true ? 'hit' : ''}" onclick="markAttempt(5,1,0,true)">✓ Hit</button>
+        <button class="result-btn ${state.sets[setKey(5,1,0)] === false ? 'miss' : ''}" onclick="markAttempt(5,1,0,false)">✕ Miss</button>
+      </div>
+    </div>
+    <div class="attempt-card">
+      <div class="attempt-label">2nd Attempt — Based on Feel</div>
+      <div class="attempt-weight">${att2}</div>
+      <div class="attempt-note">Only if 1st attempt moved well.</div>
+      <div class="attempt-result">
+        <button class="result-btn ${state.sets[setKey(5,1,1)] === true ? 'hit' : ''}" onclick="markAttempt(5,1,1,true)">✓ Hit</button>
+        <button class="result-btn ${state.sets[setKey(5,1,1)] === false ? 'miss' : ''}" onclick="markAttempt(5,1,1,false)">✕ Miss</button>
+      </div>
+    </div>
+    <div class="attempt-card highlight">
+      <div class="attempt-label">3rd Attempt — THE GOAL</div>
+      <div class="attempt-weight" style="color:var(--gold)">${att3}</div>
+      <div class="attempt-note">Only if 2nd was smooth. This is what we came for.</div>
+      <div class="attempt-result">
+        <button class="result-btn ${state.sets[setKey(5,1,2)] === true ? 'hit' : ''}" onclick="markAttempt(5,1,2,true)">✓ Hit</button>
+        <button class="result-btn ${state.sets[setKey(5,1,2)] === false ? 'miss' : ''}" onclick="markAttempt(5,1,2,false)">✕ Miss</button>
+      </div>
+    </div>`;
+  container.innerHTML = html;
+}
+
+function markAttempt(week, dayIdx, setIdx, hit) {
+  const key = setKey(week, dayIdx, setIdx);
+  state.sets[key] = hit;
+  saveState();
+  renderWeekContent();
+}
+
+// ── STATS ──
+function updateStats() {
+  let totalSets = 0, totalVolume = 0;
+  for (let w = 1; w <= 3; w++) {
+    PROGRAM[w - 1].days.forEach((day, di) => {
+      const weight = getWeight(day.pct, w);
+      for (let s = 0; s < day.sets; s++) {
+        if (state.sets[setKey(w, di, s)]) {
+          totalSets++;
+          totalVolume += weight * day.reps;
+        }
+      }
+    });
+  }
+  document.getElementById('statRM').textContent = state.rm;
+  document.getElementById('statGoal').textContent = state.goal;
+  document.getElementById('statSets').textContent = totalSets;
+  document.getElementById('statVolume').textContent = totalVolume.toLocaleString();
+  document.getElementById('headerRM').textContent = `${state.rm} lb`;
+
+  let weekHtml = '';
+  for (let w = 1; w <= 3; w++) {
+    let wSets = 0, wTotal = 0, wVol = 0;
+    PROGRAM[w - 1].days.forEach((day, di) => {
+      const weight = getWeight(day.pct, w);
+      wTotal += day.sets;
+      for (let s = 0; s < day.sets; s++) {
+        if (state.sets[setKey(w, di, s)]) {
+          wSets++;
+          wVol += weight * day.reps;
+        }
+      }
+    });
+    const pct = wTotal > 0 ? Math.round((wSets / wTotal) * 100) : 0;
+    weekHtml += `<div class="volume-bar" style="margin-bottom:8px">
+      <span style="color:var(--text);font-family:'DM Sans',sans-serif;font-weight:600">Week ${w}</span>
+      <span style="display:flex;align-items:center;gap:12px">
+        <span style="font-size:12px;color:var(--text-dim)">${wSets}/${wTotal} sets</span>
+        <span>${wVol.toLocaleString()} lb</span>
+      </span>
+    </div>`;
+  }
+  document.getElementById('weeklyStats').innerHTML = weekHtml;
+}
+
+// ── NAV ──
+function showPage(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(`page-${page}`).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach((n, i) => {
+    n.classList.toggle('active', (i === 0 && page === 'program') || (i === 1 && page === 'stats'));
+  });
+  if (page === 'stats') updateStats();
+}
+
+// ── SETTINGS ──
+function openSettings() {
+  document.getElementById('inputRM').value = state.rm;
+  document.getElementById('inputGoal').value = state.goal;
+  document.getElementById('inputIncrement').value = state.increment;
+  document.getElementById('inputTimer').value = state.timerSeconds;
+  document.getElementById('settingsModal').classList.add('open');
+}
+function closeSettings() { document.getElementById('settingsModal').classList.remove('open'); }
+function saveSettings() {
+  state.rm = parseInt(document.getElementById('inputRM').value) || 280;
+  state.goal = parseInt(document.getElementById('inputGoal').value) || 315;
+  state.increment = parseInt(document.getElementById('inputIncrement').value) || 10;
+  state.timerSeconds = parseInt(document.getElementById('inputTimer').value) || 180;
+  saveState();
+  closeSettings();
+  renderWeekSelector();
+  renderWeekContent();
+  updateStats();
+}
+function resetAll() {
+  if (confirm('Reset all progress? This cannot be undone.')) {
+    state = { ...DEFAULT_STATE, rm: state.rm, goal: state.goal, increment: state.increment, timerSeconds: state.timerSeconds };
+    saveState();
+    closeSettings();
+    renderWeekContent();
+    updateStats();
+  }
+}
+
+// Close modal on backdrop click
+document.getElementById('settingsModal').addEventListener('click', function(e) {
+  if (e.target === this) closeSettings();
+});
+
+// ── INIT ──
+renderWeekSelector();
+renderWeekContent();
+updateStats();
+</script>
+</body>
+</html>
